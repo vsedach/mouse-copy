@@ -8,7 +8,6 @@
 (global-set-key [C-M-drag-mouse-1] 'mouse-copy-ignore-event)
 (global-set-key [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
 
-
 (defun mouse-copy-ignore-event (event)
   "Ignores a (mouse) event.
 This is used to override mouse bindings in a minor mode keymap,
@@ -46,10 +45,21 @@ This command must be bound to a mouse event."
   (interactive "*e")
   (mouse-copy-do-at-point start-event (lambda (sexp) sexp)))
 
-(defun mouse-yank-sexp-to-point (start-event) ;; have to figure out how to do this w/o affecting kill ring
+(defun delete-sexp ()
+  (let ((point (point)))
+    (forward-sexp)
+    (delete-region point (point))))
+
+(defun mouse-yank-sexp-to-point (start-event)
   "Yank the sexp under the mouse cursor to point.
 This command must be bound to a mouse event."
   (interactive "*e")
-  (mouse-copy-do-at-point start-event (lambda (sexp) (beginning-of-thing 'sexp) (kill-sexp) sexp)))
+  (mouse-copy-do-at-point start-event
+                          (lambda (sexp)
+                            (beginning-of-thing 'sexp)
+                            (delete-sexp)
+                            sexp)))
 
 ;;; need functions to replace highlighted region w/sexp, replace and yank
+
+(provide 'mouse-copy)
