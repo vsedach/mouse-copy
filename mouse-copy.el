@@ -1,12 +1,20 @@
 ;; Adapted from http://www.mail-archive.com/gnu-emacs-sources@gnu.org/msg00393.html
 ;; and http://www.foldr.org/~michaelw/projects/redshank/redshank.el
 
-(global-set-key [C-mouse-1] 'ignore)
-(global-set-key [C-drag-mouse-1] 'ignore)
-(global-set-key [C-down-mouse-1] 'mouse-insert-sexp-at-point)
-(global-set-key [C-M-mouse-1] 'ignore)
-(global-set-key [C-M-drag-mouse-1] 'ignore)
-(global-set-key [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
+(defvar mouse-mode-map (make-sparse-keymap))
+
+(define-minor-mode mouse-copy-mode
+    "Minor mode for copying and moving text using a mouse
+\\{mouse-mode-map}"
+  :global t
+  :keymap mouse-mode-map)
+
+(define-key mouse-mode-map [C-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-drag-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-down-mouse-1] 'mouse-insert-sexp-at-point)
+(define-key mouse-mode-map [C-M-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-M-drag-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
 
 (defun mouse-copy-sexp-at-mouse (event thunk)
   (let ((position (event-start event)))
