@@ -1,18 +1,12 @@
 ;; Adapted from http://www.mail-archive.com/gnu-emacs-sources@gnu.org/msg00393.html
 ;; and http://www.foldr.org/~michaelw/projects/redshank/redshank.el
 
-(global-set-key [C-mouse-1] 'mouse-copy-ignore-event)
-(global-set-key [C-drag-mouse-1] 'mouse-copy-ignore-event)
+(global-set-key [C-mouse-1] 'ignore)
+(global-set-key [C-drag-mouse-1] 'ignore)
 (global-set-key [C-down-mouse-1] 'mouse-insert-sexp-at-point)
-(global-set-key [C-M-mouse-1] 'mouse-copy-ignore-event)
-(global-set-key [C-M-drag-mouse-1] 'mouse-copy-ignore-event)
+(global-set-key [C-M-mouse-1] 'ignore)
+(global-set-key [C-M-drag-mouse-1] 'ignore)
 (global-set-key [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
-
-(defun mouse-copy-ignore-event (event)
-  "Ignores a (mouse) event.
-This is used to override mouse bindings in a minor mode keymap,
-but does otherwise nothing."
-  (interactive "e"))
 
 (defun mouse-copy-do-at-point (start-event thunk)
   (let ((posn (event-start start-event)))
