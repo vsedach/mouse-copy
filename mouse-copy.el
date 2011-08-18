@@ -8,30 +8,34 @@
 (global-set-key [C-M-drag-mouse-1] 'ignore)
 (global-set-key [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
 
-(defun mouse-copy-do-at-point (start-event thunk)
-  (let ((posn (event-start start-event)))
-    (let ((sexp-at-mouse-pos
-           (with-selected-window (posn-window posn)
-             (save-excursion
-               (goto-char (posn-point posn))
-               (let ((sexp (thing-at-point 'sexp)))
-                 (funcall thunk sexp))))))
-      (if sexp-at-mouse-pos
-          (progn
-            (unless (or (bolp)
-                         (and (minibufferp)
-                              (= (point) (minibuffer-prompt-end)))
-                         (save-excursion
-                           (backward-char)
-                           (looking-at "\\s-\\|\\s\(")))
-              (insert " "))
-            (insert sexp-at-mouse-pos)
-            (unless (or (eolp)
-                        (and (minibufferp)
-                             (= (point) (minibuffer-prompt-end)))
-                        (looking-at "\\s-\\|\\s\)"))
-              (insert " ")))
-        (error "Mouse not at a sexp")))))
+(defun mouse-copy-sexp-at-mouse (event thunk)
+  (let ((position (event-start event)))
+    (with-selected-window (posn-window position)
+      (save-excursion
+       (goto-char (posn-point position))
+       (let ((sexp (thing-at-point 'sexp)))
+         (funcall thunk sexp))))))
+
+(defun mouse-copy-do-at-point (event thunk)
+  (let ((sexp (mouse-copy-sexp-at-mouse event thunk)))
+    (unless sexp
+      (error "Mouse not at a sexp"))
+    (when (and delete-selection-mode
+               (use-region-p))
+      (delete-region (region-beginning) (region-end)))
+    (unless (or (bolp)
+                (and (minibufferp)
+                     (= (point) (minibuffer-prompt-end)))
+                (save-excursion
+                 (backward-char)
+                 (looking-at "\\s-\\|\\s\(")))
+      (insert " "))
+    (insert sexp)
+    (unless (or (eolp)
+                (and (minibufferp)
+                     (= (point) (minibuffer-prompt-end)))
+                (looking-at "\\s-\\|\\s\)"))
+      (insert " "))))
 
 (defun mouse-insert-sexp-at-point (start-event)
   "Insert the sexp under the mouse cursor at point.
@@ -53,7 +57,5 @@ This command must be bound to a mouse event."
                             (beginning-of-thing 'sexp)
                             (delete-sexp)
                             sexp)))
-
-;;; need functions to replace highlighted region w/sexp, replace and yank
 
 (provide 'mouse-copy)
