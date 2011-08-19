@@ -1,44 +1,49 @@
 ;; Adapted from http://www.mail-archive.com/gnu-emacs-sources@gnu.org/msg00393.html
 ;; and http://www.foldr.org/~michaelw/projects/redshank/redshank.el
 
-(global-set-key [C-mouse-1] 'mouse-copy-ignore-event)
-(global-set-key [C-drag-mouse-1] 'mouse-copy-ignore-event)
-(global-set-key [C-down-mouse-1] 'mouse-insert-sexp-at-point)
-(global-set-key [C-M-mouse-1] 'mouse-copy-ignore-event)
-(global-set-key [C-M-drag-mouse-1] 'mouse-copy-ignore-event)
-(global-set-key [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
+(defvar mouse-mode-map (make-sparse-keymap))
 
+(define-minor-mode mouse-copy-mode
+    "Minor mode for copying and moving text using a mouse
+\\{mouse-mode-map}"
+  :global t
+  :keymap mouse-mode-map)
 
-(defun mouse-copy-ignore-event (event)
-  "Ignores a (mouse) event.
-This is used to override mouse bindings in a minor mode keymap,
-but does otherwise nothing."
-  (interactive "e"))
+(define-key mouse-mode-map [C-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-drag-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-down-mouse-1] 'mouse-insert-sexp-at-point)
+(define-key mouse-mode-map [C-M-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-M-drag-mouse-1] 'ignore)
+(define-key mouse-mode-map [C-M-down-mouse-1] 'mouse-yank-sexp-to-point)
 
-(defun mouse-copy-do-at-point (start-event thunk)
-  (let ((posn (event-start start-event)))
-    (let ((sexp-at-mouse-pos
-           (with-selected-window (posn-window posn)
-             (save-excursion
-               (goto-char (posn-point posn))
-               (let ((sexp (thing-at-point 'sexp)))
-                 (funcall thunk sexp))))))
-      (if sexp-at-mouse-pos
-          (progn
-            (unless (or (bolp)
-                         (and (minibufferp)
-                              (= (point) (minibuffer-prompt-end)))
-                         (save-excursion
-                           (backward-char)
-                           (looking-at "\\s-\\|\\s\(")))
-              (insert " "))
-            (insert sexp-at-mouse-pos)
-            (unless (or (eolp)
-                        (and (minibufferp)
-                             (= (point) (minibuffer-prompt-end)))
-                        (looking-at "\\s-\\|\\s\)"))
-              (insert " ")))
-        (error "Mouse not at a sexp")))))
+(defun mouse-copy-sexp-at-mouse (event thunk)
+  (let ((position (event-start event)))
+    (with-selected-window (posn-window position)
+      (save-excursion
+       (goto-char (posn-point position))
+       (let ((sexp (thing-at-point 'sexp)))
+         (funcall thunk sexp))))))
+
+(defun mouse-copy-do-at-point (event thunk)
+  (let ((sexp (mouse-copy-sexp-at-mouse event thunk)))
+    (unless sexp
+      (error "Mouse not at a sexp"))
+    (when (and delete-selection-mode
+               (use-region-p))
+      (delete-region (region-beginning) (region-end)))
+    (unless (or (bolp)
+                (and (minibufferp)
+                     (= (point) (minibuffer-prompt-end)))
+                (save-excursion
+                 (backward-char)
+                 (looking-at "\\s-\\|\\s\(")))
+      (insert " "))
+    (insert sexp)
+    (unless (or (eolp)
+                (and (minibufferp)
+                     (= (point) (minibuffer-prompt-end)))
+                (looking-at "\\s-\\|\\s\)"))
+      (insert " "))))
 
 (defun mouse-insert-sexp-at-point (start-event)
   "Insert the sexp under the mouse cursor at point.
@@ -46,10 +51,19 @@ This command must be bound to a mouse event."
   (interactive "*e")
   (mouse-copy-do-at-point start-event (lambda (sexp) sexp)))
 
-(defun mouse-yank-sexp-to-point (start-event) ;; have to figure out how to do this w/o affecting kill ring
+(defun delete-sexp ()
+  (let ((point (point)))
+    (forward-sexp)
+    (delete-region point (point))))
+
+(defun mouse-yank-sexp-to-point (start-event)
   "Yank the sexp under the mouse cursor to point.
 This command must be bound to a mouse event."
   (interactive "*e")
-  (mouse-copy-do-at-point start-event (lambda (sexp) (beginning-of-thing 'sexp) (kill-sexp) sexp)))
+  (mouse-copy-do-at-point start-event
+                          (lambda (sexp)
+                            (beginning-of-thing 'sexp)
+                            (delete-sexp)
+                            sexp)))
 
-;;; need functions to replace highlighted region w/sexp, replace and yank
+(provide 'mouse-copy)
