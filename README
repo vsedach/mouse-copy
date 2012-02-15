@@ -1,0 +1,20 @@
+mouse-copy is an Emacs minor mode that lets you copy/yank an s-exp
+under the mouse cursor to point by holding down a modifier key (C/C-M)
+and left-clicking. It works across windows and is frequently faster
+than re-positioning the pointer to select and copy a region.
+
+mouse-copy is inspired by similar functionality in the Lisp Machine
+ZWEI/Zmacs and the Macintosh Common Lisp editors.
+
+mouse-copy is licensed under the ISC (simplified BSD) license (see
+LICENSE file), and is developed by Vladimir Sedach <vsedach@gmail.com>
+and Stas Boukarev <stassats@gmail.com>
+
+To use mouse-copy, add something like this to your .emacs:
+(load "~/.emacs.d/mouse-copy/mouse-copy.el")
+(add-hook 'lisp-mode-hook (lambda () (mouse-copy-mode t)))
+(add-hook 'slime-repl-mode-hook (lambda () (mouse-copy-mode t)))
+(setq mouse-yank-at-point t) ;; for secondary selection
+
+add-hook for whatever other modes you want to use with mouse-copy.
+
