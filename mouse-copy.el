@@ -1,5 +1,30 @@
+;;; mouse-copy.el --- easily copy/yank sexps under the mouse cursor
+
+;; Copyright (c) 2011, Vladimir Sedach <vsedach@gmail.com>, Stas Boukarev <stassats@gmail.com>
+;; Keywords: lisp
+
+;; Permission to use, copy, modify, and/or distribute this software for
+;; any purpose with or without fee is hereby granted, provided that the
+;; above copyright notice and this permission notice appear in all
+;; copies.
+
+;; THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+;; WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+;; WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+;; AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+;; DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+;; PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+;; TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+;; PERFORMANCE OF THIS SOFTWARE.
+
+;;; Commentary:
+
 ;; Adapted from http://www.mail-archive.com/gnu-emacs-sources@gnu.org/msg00393.html
 ;; and http://www.foldr.org/~michaelw/projects/redshank/redshank.el
+
+;;; Code:
+
+(require 'thingatpt)
 
 (defvar mouse-mode-map (make-sparse-keymap))
 
@@ -51,7 +76,7 @@ This command must be bound to a mouse event."
   (interactive "*e")
   (mouse-copy-do-at-point start-event (lambda (sexp) sexp)))
 
-(defun delete-sexp ()
+(defun mouse-copy-delete-sexp ()
   (let ((point (point)))
     (forward-sexp)
     (delete-region point (point))))
@@ -63,7 +88,8 @@ This command must be bound to a mouse event."
   (mouse-copy-do-at-point start-event
                           (lambda (sexp)
                             (beginning-of-thing 'sexp)
-                            (delete-sexp)
+                            (mouse-copy-delete-sexp)
                             sexp)))
 
 (provide 'mouse-copy)
+;;; mouse-copy.el ends here
